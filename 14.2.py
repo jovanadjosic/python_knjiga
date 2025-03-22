@@ -12,11 +12,15 @@ class Rect(Sprite):
         self.settings=ai_game.settings
         self.color=self.settings.rect_color
 
+        # TODO Jovana, udari razmak posle tarabe dole i uradi to sa svim komentarima
+        # TODO Napravi direktorijum 14.2 i tamo podeli ovaj fajl u jedan fajl po klasi
         #Create a rect at (0,0) and then set correct position.
+        # TODO Udari razmak posle svakog zareza dole i u svim ostalim linijama
         self.rect=pygame.Rect(0,0,self.settings.rect_width,self.settings.rect_height)
         self.rect.midright=ai_game.screen.get_rect().midright
 
         #Store the rect's position as a decimal value.
+        # TODO Stavi razmak pre i posle jednako i u svim ostalim linijama
         self.y=float(self.rect.y)
         self.direction=1
 
