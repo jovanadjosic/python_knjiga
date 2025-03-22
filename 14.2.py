@@ -77,14 +77,14 @@ class Bullet(Sprite):
         self.rect.midtop = ai_game.ship.rect.midtop
 
         # Store the bullet's position as a decimal value.
-        self.y = float(self.rect.y)
+        self.x = float(self.rect.x)
 
     def update(self):
         """Move the bullet up the screen."""
         # Update the exact position of the bullet.
-        self.y -= self.settings.bullet_speed
-        # Update the rect position.
-        self.rect.y = self.y
+        self.x += self.settings.bullet_speed
+        # Update the bullet position.
+        self.rect.x = self.x
 
     def draw_bullet(self):
         """Draw the bullet to the screen."""
@@ -291,20 +291,11 @@ class TargetPractice:
         # If a collision occurs, create a new rectangle.
         if collisions:
             self._create_rect()
-
-        # Check if bullets missed the rectangles.
-        for bullet in self.bullets.copy():
-            missed = True
-            for rect in self.rects:
-                if bullet.rect.colliderect(rect.rect):  # Check collision with each rect
-                    missed = False
-                    break
-            if missed:
-                self.bullets.remove(bullet)
-                self.stats.ships_left -= 1
-                if self.stats.ships_left == 0:
-                    self.stats.game_active = False
-                    pygame.mouse.set_visible(True)
+        if not self.rects:
+            self.stats.ships_left -= 1
+            if self.stats.ships_left == 0:
+                self.stats.game_active = False
+                pygame.mouse.set_visible(True)
 
 
     def _create_rect(self):
