@@ -51,20 +51,35 @@ class Settings:
         self.screen_width=1200
         self.screen_height=800
         self.bg_color=(230,230,230)
-        #Ship settings
-        self.ship_speed=1.5
-        self.ship_limit=3
-        #Bullet settings
-        self.bullet_speed=2.5
-        self.bullet_width=3
-        self.bullet_height=15
-        self.bullet_color=(0,255,0)
-        self.bullets_allowed=3
-        #Rect settings
+        # Ship settings
+        self.ship_speed = 1.5
+        self.ship_limit = 3
+        # Bullet settings
+        self.bullet_speed = 2.5
+        self.bullet_width = 3
+        self.bullet_height = 15
+        self.bullet_color = (0,255,0)
+        self.bullets_allowed = 3
+        # Rect settings
         self.rect_width = 50
         self.rect_height = 200
         self.rect_color = (255, 0, 0)
         self.rect_speed = 2.0
+        # How quickly the game speeds up
+        self.speedup_scale = 1.1
+        self.initialize_dynamic_settings()
+    def initialize_dynamic_settings(self):
+        """Initialize settings that change throughout the game."""
+        self.ship_speed = 1.5
+        self.bullet_speed = 2.5
+        self.rect_speed = 1.0
+        # fleet_direction of 1 represents right; -1 represents left.
+        self.fleet_direction = 1
+    def increase_speed(self):
+        """Increase speed settings."""
+        self.ship_speed *= self.speedup_scale
+        self.bullet_speed *= self.speedup_scale
+        self.rect_speed *= self.speedup_scale
 
 
 class Bullet(Sprite):
@@ -154,27 +169,27 @@ class Button:
 
     def __init__(self,ai_game,msg):
         """Initialize button attributes."""
-        self.screen=ai_game.screen
-        self.screen_rect=self.screen.get_rect()
+        self.screen = ai_game.screen
+        self.screen_rect = self.screen.get_rect()
 
         #Set the dimensions and properties of the button.
-        self.width,self.height=200,50
-        self.button_color=(0,135,0)
-        self.text_color=(255,255,255)
-        self.font=pygame.font.SysFont(None,48)
+        self.width,self.height = 200,50
+        self.button_color = (0,135,0)
+        self.text_color = (255,255,255)
+        self.font = pygame.font.SysFont(None,48)
 
         #Build the button's rect object and center it.
-        self.rect=pygame.Rect(0,0,self.width,self.height)
-        self.rect.center=self.screen_rect.center
+        self.rect = pygame.Rect(0,0,self.width,self.height)
+        self.rect.center = self.screen_rect.center
 
         #The button message needs to be prepped only once.
         self._prep_msg(msg)
 
     def _prep_msg(self,msg):
         """Turn msg into a rendered image and center text on the button."""
-        self.msg_image=self.font.render(msg,True,self.text_color,self.button_color)
-        self.msg_image_rect=self.msg_image.get_rect()
-        self.msg_image_rect.center=self.rect.center
+        self.msg_image = self.font.render(msg,True,self.text_color,self.button_color)
+        self.msg_image_rect = self.msg_image.get_rect()
+        self.msg_image_rect.center = self.rect.center
 
     def draw_button(self):
         """Draw blank button and then draw message."""
@@ -188,21 +203,21 @@ class TargetPractice:
         """Initialize the game, and create game resources"""
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.settings=Settings()
+        self.settings = Settings()
         self.screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
-        self.settings.screen_width=self.screen.get_rect().width
-        self.settings.screen_height=self.screen.get_rect().height
+        self.settings.screen_width = self.screen.get_rect().width
+        self.settings.screen_height = self.screen.get_rect().height
         pygame.display.set_caption("TargetPractice")
         #Create an instance to store game statistics.
-        self.stats=GameStats(self)
-        self.ship=Ship(self)
-        self.bullets=pygame.sprite.Group()
-        self.rects=pygame.sprite.Group()
+        self.stats = GameStats(self)
+        self.ship = Ship(self)
+        self.bullets = pygame.sprite.Group()
+        self.rects = pygame.sprite.Group()
         self._create_rect()
         #Set the background color.
-        self.bg_color=self.settings.bg_color
+        self.bg_color = self.settings.bg_color
         #Make the Play button.
-        self.play_button=Button(self,"Play")
+        self.play_button = Button(self,"Play")
 
     def run_game(self):
         """Start the main loop for the game."""
@@ -215,46 +230,47 @@ class TargetPractice:
             self._update_screen()
             self.clock.tick(60)
 
-            #Make the most recently drawn screen visible.
+            # Make the most recently drawn screen visible.
     def _check_events(self):
         """Respond to keypresses and mouse events."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            elif event.type==pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 self.check_keydown_events(event)
-            elif event.type==pygame.KEYUP:
+            elif event.type == pygame.KEYUP:
                 self.check_keyup_events(event)
-            elif event.type==pygame.MOUSEBUTTONDOWN:
-                mouse_pos=pygame.mouse.get_pos()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
                 self._check_play_button(mouse_pos)
     
     def _check_play_button(self,mouse_pos):
         """Start a new game when the player clicks Play."""
         button_clicked=self.play_button.rect.collidepoint(mouse_pos)
         if button_clicked and not self.stats.game_active:
-            #Reset the game statistics.
+            # Reset the game settings
+            self.settings.initialize_dynamic_settings()
             self.stats.reset_stats()
             self.stats.game_active=True
-            #Get rid of any remaining aliens and bullets.
+            # Get rid of any remaining aliens and bullets.
             self.bullets.empty()
-            #Create a new fleet and center the ship.
+            # Create a new fleet and center the ship.
             self.ship.center_ship()
-            #Hide the mouse cursor.
+            # Hide the mouse cursor.
             pygame.mouse.set_visible(False)
 
 
     def check_keydown_events(self,event):
         """Respond to keypresses."""
-        if event.key==pygame.K_UP:
+        if event.key == pygame.K_UP:
             self.ship.moving_up=True
-        elif event.key==pygame.K_DOWN:
+        elif event.key == pygame.K_DOWN:
             self.ship.moving_down=True
-        elif event.key==pygame.K_q:
+        elif event.key == pygame.K_q:
             sys.exit()
-        elif event.key==pygame.K_SPACE:
+        elif event.key == pygame.K_SPACE:
             self._fire_bullet()
-        elif event.key==pygame.K_p:
+        elif event.key == pygame.K_p:
             if not self.stats.game_active:
                 #Reset the game statistics.
                 self.stats.reset_stats()
@@ -267,39 +283,40 @@ class TargetPractice:
                 pygame.mouse.set_visible(False)
 
     def check_keyup_events(self,event):
-        if event.key==pygame.K_UP:
-            self.ship.moving_up=False
-        elif event.key==pygame.K_DOWN:
-            self.ship.moving_down=False
+        if event.key == pygame.K_UP:
+            self.ship.moving_up = False
+        elif event.key == pygame.K_DOWN:
+            self.ship.moving_down = False
 
     def _fire_bullet(self):
         """Create a new bullet and add it to the bullets group."""
-        if len(self.bullets)<self.settings.bullets_allowed:
-            new_bullet=Bullet(self)
+        if len(self.bullets) < self.settings.bullets_allowed:
+            new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
 
     def _update_bullets(self):
         """Update position of bullets and get rid of old bullets."""
-        #Update bullet positions.
+        # Update bullet positions.
         self.bullets.update()
-        #Get rid of bullets that have disappeared.
+        # Get rid of bullets that have disappeared.
         for bullet in self.bullets.copy():
-            if bullet.rect.top<=0:
+            if bullet.rect.left >= self.screen.get_width():
                 self.bullets.remove(bullet)
+                self.stats.ships_left -= 1
+            if self.stats.ships_left == 0:
+                self.stats.game_active = False
+                pygame.mouse.set_visible(True)
         self._check_bullet_rect_collision()
     
     def _check_bullet_rect_collision(self):
         """Update position of bullets and get rid of old bullets."""
-        collisions=pygame.sprite.groupcollide(self.bullets,self.rects,True,True)
+        collisions = pygame.sprite.groupcollide(self.bullets,self.rects,True,True)
         # Check for bullet-rect collisions.
         # If a collision occurs, create a new rectangle.
         if collisions:
             self._create_rect()
-        if not self.rects:
-            self.stats.ships_left -= 1
-            if self.stats.ships_left == 0:
-                self.stats.game_active = False
-                pygame.mouse.set_visible(True)
+        else:
+            self.settings.increase_speed()
 
 
     def _create_rect(self):
@@ -315,12 +332,12 @@ class TargetPractice:
         self.ship.blitme()
         for rect in self.rects.sprites():
             rect.draw_rect()
-        #Draw the play button if the game is inactive.
+        # Draw the play button if the game is inactive.
         if not self.stats.game_active:
             self.play_button.draw_button()
         pygame.display.flip()
 
 if __name__ == "__main__":
-    #Make a game instance, and run the game.
+    # Make a game instance, and run the game.
     tp = TargetPractice()
     tp.run_game()
