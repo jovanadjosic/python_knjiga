@@ -303,6 +303,7 @@ class TargetPractice:
             if bullet.rect.left >= self.screen.get_width():
                 self.bullets.remove(bullet)
                 self.stats.ships_left -= 1
+                self.settings.increase_speed()
             if self.stats.ships_left == 0:
                 self.stats.game_active = False
                 pygame.mouse.set_visible(True)
@@ -315,8 +316,6 @@ class TargetPractice:
         # If a collision occurs, create a new rectangle.
         if collisions:
             self._create_rect()
-        else:
-            self.settings.increase_speed()
 
 
     def _create_rect(self):
